@@ -9,7 +9,7 @@ var gameState = "wait";
 var bullet_group, bullet_img,bullet
 var health = 200, max_health=200;
 var score=0;
-
+var player2;
 
 
 function preload(){
@@ -45,6 +45,11 @@ function setup() {
     player.addImage(player_img);
     player.scale = 0.6;
     player.visible = false;
+
+    player2 = createSprite(width/15- 50,windowHeight/2);
+    player2.addImage(player_img);
+    player2.scale = 0.6;
+    player2.visible = false;
 
     enemy_group = new Group();
     bullet_group = new Group();
@@ -99,15 +104,15 @@ function draw(){
     }
 
     if(health >0 &&  score==10){
-        gameState="level1win";
+        
         enemy_group.destroyEach()
         bullet_group.destroyEach()
         player.visible=false;
-
+        gameState="level1win";
     
     }
 
-    if(health<=30){
+    if(health<=0){
         enemy_group.destroyEach()
         bullet_group.destroyEach()
         player.visible=false
@@ -121,28 +126,59 @@ function draw(){
     }
 
     if (gameState=="level1win"){
-        level1_win();
+        score = 0;
+        level1_win()
 
     }
 
     if(gameState == "level2"){
         background(bg2_img);
         player.visible = true;
-        player.x = width/10
-        player.y = windowHeight-90;
+        
         movement();
         health_level();
         spawnEnemies2();
         if(keyIsDown(32)){
-            spawnBullets();
+            spawnBullets()
         }
         
+        for(var i =0 ; i < enemy_group2.length ; i++){
+            if(bullet_group.isTouching(enemy_group2.get(i))){
+                score +=10;
+                enemy_group2.get(i).remove();
+                bullet_group.destroyEach();
+            }
+        }
         
+        for(var i =0; i< enemy_group2.length; i++){
+            if((player.isTouching(enemy_group2.get(i)) ) || (enemy_group2.get(i).position.x <0)){
+                health -= 90;
+                enemy_group2.get(i).remove();
+                }
+          }
 
+          if(health<=0){
+            enemy_group2.remove()
+            bullet_group.destroyEach()
+            player.visible=false
+            gameState="end";
+    
+        }
+
+        if(health >0 &&  score==10){
         
+            enemy_group.destroyEach()
+            bullet_group.destroyEach()
+            player.visible=false;
+            gameState="gameWin";
+        
+        }
 
     }
    
+    if(gameState == "gameWin"){
+        gameWin();
+    }
 
     
     if(gameState=="end"){
@@ -151,7 +187,7 @@ function draw(){
 
    
 
-    if (gameState == "level1"){
+    if (gameState == "level1" || gameState == "level2"){
         fill("black")
         textSize(40)
         text("SCORE: "+score,width/10,windowHeight/10)
@@ -170,7 +206,7 @@ function aboutFunct(){
     title : "About FireStorm",
     text : "To surpass a level you should defeat all enemies without faliure in a particular stage",
     textAlign : "CENTER",
-    imageUrl : "/assets/Game_On.gif",
+    imageUrl : "./assets/Game_On.gif",
     imageSize:"200x200",
     confirmButtonText: "Back to HomeScreen",
     confirmButtonColor:"green",
@@ -196,13 +232,13 @@ function movement(){
  
 
     if(keyDown("UP_ARROW")){
-        console.log("up arrow pressed");
+     
         player.y -= 25;
     }
     
 
     if (keyDown("DOWN_ARROW")){
-        console.log("down arrow pressed");
+        
         player.y += 25;
     }
 }
@@ -258,6 +294,17 @@ function spawnBullets(){
     
 }
 
+function spawnBullets2(){
+    bullet = createSprite(player2.x+2,player2.y+2,20,20)
+    bullet.addImage(bullet_img);
+    bullet.scale=0.2
+    bullet.velocityX = 5
+    bullet.depth = player2.depth
+    player.depth = player2.depth+1
+    bullet_group.add(bullet);
+    
+}
+
 function health_level(){
     stroke("lightgreen")
     strokeWeight(2);
@@ -274,7 +321,7 @@ function level1_win(){
         title : "You Have Won Level 1 !!!",
         text : "To enter the next battle click deploy",
         textAlign : "CENTER",
-        imageUrl : "/assets/Game_On.gif",
+        imageUrl : "./assets/Game_On.gif",
         imageSize:"200x200",
         confirmButtonText: "Deploy",
         confirmButtonColor:"green",
@@ -291,7 +338,7 @@ function gameEnd(){
         title : "Game Over",
         text : "You have lost all your health. Click Restart to deply again.",
         textAlign : "CENTER",
-        imageUrl : "/assets/Game_On.gif",
+        imageUrl : "./assets/Game_On.gif",
         imageSize:"200x200",
         confirmButtonText: "Restart",
         confirmButtonColor:"green",
@@ -303,6 +350,7 @@ function gameEnd(){
 }
 
 function spawnEnemies2(){
+   
     if (frameCount%60==0){
         var random = Math.round((Math.random()*2)+1);
         
@@ -314,14 +362,20 @@ function spawnEnemies2(){
         enemy2 = createSprite(width-10,randomHeight);
         switch(random){
             case 1:
-                enemy.addImage(enemy_2_1);
-                enemy.scale = 1.3;
-                enemy.velocityX = -5;
+                enemy2.addImage(enemy_2_1);
+                enemy2.scale = 1.3;
+                enemy2.velocityX = -5;
                 break;
 
             case 2:
-                enemy.addImage(enemy_2_2);
-                enemy.scale = 1.3;
+                enemy2.addImage(enemy_2_2);
+                enemy2.scale = 1.3;
+                enemy2.velocityX = -5;
+                break;
+
+            case 3:
+                enemy.addImage(enemy_2_1);
+                enemy.scale = 0.3;
                 enemy.velocityX = -5;
                 break;
 
@@ -333,4 +387,22 @@ function spawnEnemies2(){
 
         enemy_group2.add(enemy2);
     }
+}
+
+
+function gameWin(){
+    swal({
+        title : "You Have Won The Game !!!",
+        text : "Click to restart game",
+        textAlign : "CENTER",
+        imageUrl : "./assets/Game_On.gif",
+        imageSize:"200x200",
+        confirmButtonText: "ReDeploy",
+        confirmButtonColor:"green",
+    
+      },
+      function(){
+        gameState = "wait";
+       
+      })
 }
